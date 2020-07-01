@@ -2,7 +2,7 @@
 
 Repository contains **Dockerfile** and other files to support the automated build of a [Docker](https://www.docker.com/) image with [apache-airflow](https://github.com/apache/airflow) published to the public [Docker Hub Registry](https://hub.docker.com/repository/docker/buzz84/docker-airflow).
 
-## Informations and Prerequisites
+## Information and Prerequisites
 
 * Based on Python (python:3.7-slim) official Image [python:3.7-slim]
 * Install [Docker](https://www.docker.com/)
@@ -24,7 +24,7 @@ Pull the image from the Docker repository.
 
 ## Usage
 
-Entrypoint for this docker was setting up to accept various entries, the default will start a container running airflow with **SequencialExecutor**, it means several limitations, good for assembly DAGs without execute them:
+Entrypoint for this docker was setting up to accept various entries, the default will start a container running airflow with **SequencialExecutor**, it means several limitations, good for assembly DAGs without executing them:
 
     docker run -d -p 8080:8080 buzz84/docker-airflow webserver
 
@@ -34,14 +34,14 @@ Example file for use of **CeleryExecutor** in the repository:
 
     docker-compose -f docker-compose.yml up -d
 
-As you can see in composer file we set an fernet_key to be used by the docker-airflow to set the same key on startup across all containers, to generate a fernet_key you can use the follow command:
+As you can see in composer file we set a fernet_key to be used by the docker-airflow to set the same key on startup across all containers, to generate a fernet_key you can use the following command:
 
     docker run buzz84/docker-airflow python -c "from cryptography.fernet import Fernet; FERNET_KEY = Fernet.generate_key().decode(); print(FERNET_KEY)"
 
 
-## Install custom python package
+## Install customs python package
 
-The entrypoint script is read to take the file requirement.txt from the root system of you container and install all additional package that you want, you just have to mount the volume with the file or add it to the composer yaml file to do that for you
+The entrypoint script is read to take the file requirement.txt from the root system of your container and install all additional package that you want, you just have to mount the volume with the file or add it to the composer yaml file to do that for you
 
 ## UI Links
 
@@ -55,9 +55,9 @@ Easy scaling using docker-compose:
 
     docker-compose -f docker-compose-CeleryExecutor.yml scale worker=5
 
-This can be used to scale to a multi node setup using docker swarm.
+This can be used to scale to a multi-node setup using a docker swarm.
 
-## Running extra command in your docker
+## Running an extra command in your docker
 
 As soon as the entrypoint has an alternative exception to run the commands no predefined in its script (webserver, scheduler, worker...)
 
