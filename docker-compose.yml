@@ -1,0 +1,98 @@
+version: '2.3'
+services:
+    redis:
+        image: 'redis:5.0-buster'
+        ports:
+            - "6379:6379"
+
+    postgres:
+        image: 'postgres:9.6'
+        ports:
+            - "5432:5432"
+        environment:
+            - POSTGRES_USER=airflow
+            - POSTGRES_PASSWORD=airflow
+            - POSTGRES_DB=airflow
+        
+        
+    webserver:
+        image: 'buzz84/docker-airflow:latest'
+        restart: always
+        depends_on:
+            - postgres
+            - redis
+        environment:
+            - AIRFLOW__WEBSERVER__RBAC=true
+            - LOAD_EX=n
+            - FERNET_KEY="gM2oAD_fTG99c2i7Tv3-kE3FuoNPWP_CjVVR3q62vvg="
+            - EXECUTOR=Celery
+            - POSTGRES_USER=airflow
+            - POSTGRES_PASSWORD=airflow
+            - POSTGRES_DB=airflow
+            - POSTGRES_HOST=postgres
+            - POSTGRES_PORT=5432
+            - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+            
+        volumes:
+            - ../dags:/opt/airflow/dags
+            - ../resources:/opt/airflow/resources
+            # Uncomment to include custom plugins
+            # - ./plugins://opt/airflow/plugins
+        ports:
+            - "8080:8080"
+        command: webserver
+        healthcheck:
+            test: ["CMD-SHELL", "[ -f /opt/airflow/airflow-webserver.pid ]"]
+            interval: 30s
+            timeout: 30s
+            retries: 3
+
+    flower:
+        image: 'buzz84/docker-airflow:latest'
+        restart: always
+        depends_on:
+            - redis
+        environment:
+            - EXECUTOR=Celery
+        ports:
+            - "5555:5555"
+        command: flower
+
+    scheduler:
+        image: 'buzz84/docker-airflow:latest'
+        restart: always
+        depends_on:
+            - webserver
+        volumes:
+            - ../dags:/opt/airflow/dags
+            - ../resources:/opt/airflow/resources
+        environment:
+            - LOAD_EX=n
+            - FERNET_KEY="gM2oAD_fTG99c2i7Tv3-kE3FuoNPWP_CjVVR3q62vvg="
+            - EXECUTOR=Celery
+            - POSTGRES_USER=airflow
+            - POSTGRES_PASSWORD=airflow
+            - POSTGRES_DB=airflow
+            - POSTGRES_HOST=postgres
+            - POSTGRES_PORT=5432
+            - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+        command: scheduler
+
+    worker:
+        image: 'buzz84/docker-airflow:latest'
+        restart: always
+        depends_on:
+            - scheduler
+        volumes:
+            - ../dags:/opt/airflow/dags
+            - ../resources:/opt/airflow/resources
+        environment:
+            - FERNET_KEY="gM2oAD_fTG99c2i7Tv3-kE3FuoNPWP_CjVVR3q62vvg="
+            - EXECUTOR=Celery
+            - POSTGRES_USER=airflow
+            - POSTGRES_PASSWORD=airflow
+            - POSTGRES_DB=airflow
+            - POSTGRES_HOST=postgres
+            - POSTGRES_PORT=5432
+            - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+        command: worker
